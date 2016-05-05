@@ -1,0 +1,106 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <style>
+    .b_border
+    {
+      border-bottom:1px solid #fff;box-sizing:border-box;
+    }
+    .tb_head
+    {
+      border-right: 1px solid #fff;
+      font-weight: bold;
+      height: 100%;
+      display: inline-block;
+      text-align: center;
+    }
+
+    table
+    {
+      border-collapse:collapse;
+      table-layout: fixed;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    table, td, th
+    {
+      border: 1px solid #fff;
+    }
+    th
+    {
+      height: 40px;
+    }
+    td
+    {
+      height: 30px;
+    }
+
+    td, th
+    {
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body style="color:#fff;margin:0;padding:0">
+<div style="height:100%;background:#000;">
+  <!-- head -->
+  <div class="b_border" style="height:20%;padding:0 40px;font-weight:bold;line-height:100%; ">
+    <div style="font-size:50px;line-height:120px;text-align:right;color:#0f0;">
+      <span>总计： </span>
+      <span id="sum" style="font-size:100px">0.00</span>
+      <span>元</span>
+    </div>
+  </div>
+  <!-- content -->
+  <div class="b_border" style="height:70%;overflow-x:hidden;overflow-y:auto;">
+    <!-- <div class="b_border" style="height:40px;line-height:40px;">
+      <span class="tb_head" style="width:50px">序号</span>
+      <span class="tb_head" style="width:200px">商品编号</span>
+      <span class="tb_head" style="width:250px">商品名称</span>
+      <span class="tb_head" style="width:100px">单价</span>
+      <span class="tb_head" style="width:50px">数量</span>
+      <span class="tb_head" style="width:150px">金额</span>
+    </div> -->
+    <table id="goods_list" style="">
+      <tr>
+        <th style="width:5%">序号</th>
+        <th style="width:25%">商品编号</th>
+        <th style="width:30%">商品名称</th>
+        <th style="width:12%">单价</th>
+        <th style="width:10%">数量</th>
+        <th style="width:18%">金额</th>
+      </tr>
+    </table>
+
+  </div>
+  <!-- bottom -->
+  <div style="height:10%;">
+    <div style="margin:15px 0 0 20px;padding:0;display:inline-block;">
+      <!-- <form id="bc_form" method="post" action="#" style="margin:15px 0 0 20px;padding:0;display:inline-block;"> -->
+        <span>请输入商品编码</span>
+        <input  autocomplete="off" id="barcode" type="text" name="barcode" value="" style="width:300px;height:30px;">
+        <input id="settle_btn" type="button" name="name" value="[F5] 结算">
+        <input  autocomplete="off" id="settings" type="button" value="修改商品" style="padding:7px 10px;" >
+      <!-- </form> -->
+    </div>
+  </div>
+
+</div>
+
+
+<!-- popup dialog -->
+<div id="dialog" style="display:none;position:absolute;left:220px;top:200px;background:#ccc;width:400px;height:200px;">
+  <div id="dialog_content">
+
+  </div>
+</div>
+
+<script type="text/javascript" src="./index.js"></script>
+</body>
+
+<script type="text/javascript">
+  document.getElementById("barcode").focus();
+</script>
+</html>

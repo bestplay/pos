@@ -1,0 +1,14 @@
+{
+  "name": "POS-system",
+  "main": "index.html",
+  "window": {
+    "title": "翡翠芳龄超市",
+    "width": 800,
+    "height": 600,
+    "min_width": 800,
+    "min_height": 600
+  },
+  "dependencies": {
+    "sqlite3": "^3.1.3"
+  }
+}
