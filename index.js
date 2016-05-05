@@ -1,6 +1,8 @@
 var exec = require("child_process").exec;
 var path = require("path");
 
+var dbm = require("./js/db.js");
+
 // globals
 global.goodsArr = [];
 global.goodsSum = 0.00;
@@ -35,6 +37,8 @@ var settle_btn = document.getElementById("settle_btn");
 // init
 window.onload = init;
 
+
+
 function test_sql(){
   var sqlite3 = require('sqlite3').verbose();
   var db = new sqlite3.Database('test.sqlite3', function(err){
@@ -61,10 +65,11 @@ function test_sql(){
   });
 }
 
-
 function init(){
+  test_sql()
     // ---
-    test_sql();
+    var dbm = require("./js/db.js");
+    dbm.test_sql();
 
 
   settle_btn.onclick = function(){
