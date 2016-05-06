@@ -1,7 +1,11 @@
+## New workaround
 
-// 收费 API
+- 使用 nw.js 单纯作为 UI。node 运行在原生 node.exe 中。
+- 两者使用 websocket 通信。
 
-https://route.showapi.com/66-22?code=6901028045919&showapi_appid=18263&showapi_sign=5bdb3020e169445e9381b42df9fcdbc2
+## 开发环境
+- nw.js 	0.8.6 (体积小)
+- node 		4.4.4
 
 
 // install sqlite3 for nw.js
