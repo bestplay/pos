@@ -13,28 +13,14 @@ function ajax(url,method,cb){
 				// ...our code here...
 				// xmlhttp.responseText
 
-				cb(null,xmlhttp);
+				cb(null,xmlhttp.responseText);
 			} else {
 				// alert("Problem retrieving XML data");
-				cb("Problem retrieving XML data",xmlhttp);
+				cb("Problem retrieving XML data",xmlhttp.responseText);
 			}
 		}
 	};
 	xmlhttp.open(method,url,true);
 	xmlhttp.send(null);
-
-
-	function state_Change(){
-		if (xmlhttp.readyState==4){
-			// 4 = "loaded"
-		}
-		if (xmlhttp.status==200){
-			// 200 = OK
-			// ...our code here...
-			// xmlhttp.responseText
-		} else {
-			alert("Problem retrieving XML data");
-		}
-	}
 }
 

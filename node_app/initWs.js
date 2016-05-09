@@ -1,30 +1,32 @@
 "use strict";
-var WebSocketServer = require('ws').Server;
+var http = require('http');
+var util = require('util');
+var url = require('url');
+var router = require('./router.js');
 
-function wsServer(port,callback){
-	port = port || 10007;
-	var t = {};
-	createServer(cback);
-
-	function createServer(cback){
-		var wss = new WebSocketServer({ port: port });
-		wss.on("error",cback);
-		t = setTimeout(function(){
-			console.log("using port : " + port);
-			callback && callback(wss, port);
-		},1000);
-	}
-	function cback(e){
-		port ++;
-		if(port > 60000){
-			throw "Tried too many ports and failed!";
-			return;
+function httpServer(callback){
+	var server = http.createServer(function(req,res){
+		// handle messages...
+		if(req.method == "GET"){
+			var params = url.parse(req.url,true).query;
+			router(params,res);
+		}else{
+			var data = "";
+			req.on('data',function(c){
+				data += c;
+			});
+			req.on('end',function(){
+				try{
+					data = JSON.parse(data);
+				}catch(e){
+					console.log(e);
+				}
+				router(data,res);
+			});
 		}
-		clearTimeout(t);
-		console.log("port is used try listening port : " + port);
-		createServer(cback);
-	}
+
+	}).listen(10007,callback);
 }
 
 
-module.exports = wsServer;
+module.exports = httpServer;

@@ -5,6 +5,7 @@ ui.goodsArr = [];
 ui.goodsSum = 0.00;
 
 ui.orderStatus = 0;
+ui.url = 'http://localhost:' + localParams.localWsPort;
 
 
 ui.init = function(){
@@ -23,7 +24,6 @@ ui.init = function(){
 	var sum = document.getElementById("sum");
 
 
-	waitMask.style.display = "none";
 	// forcus input panel when inited.
 	bc_input.focus();
 
@@ -62,15 +62,17 @@ ui.init = function(){
 		}
 
 		// TODO query barcode from DB 
-		// var result = localStorage.getItem(bcode+"");
-		var r;
-		if(result){
-			r = JSON.parse(result);
-			addGoodsToCart(r);
-		}else {
-			// add new goods.
-			saveNewGoodsToDB(bcode);
-		}
+		var url = ui.url + '?act=getGoods&bcode=' + bcode;
+		ajax(url,'get',function(e,result){
+			var r;
+			if(result){
+				r = JSON.parse(result);
+				addGoodsToCart(r);
+			}else {
+				// add new goods.
+				saveNewGoodsToDB(bcode);
+			}
+		})
 	}
 
 	// click settle button.
