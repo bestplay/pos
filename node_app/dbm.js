@@ -78,7 +78,17 @@ var wrapper = function(){
 
 	function getGoodsInfo(bcode,cb){
 		var s = "SELECT * FROM GOODS WHERE bcode=? LIMIT 1";
-		db.all(s,[bcode+''],cb);
+		db.all(s,bcode,function(e,r){
+			var res = r[0];
+			if(res){
+				var ks = Object.getOwnPropertyNames(res);
+				ks.forEach(function(k){
+					res[k] = res[k] || "";
+				});
+			}
+			res = res || null;
+			cb(e,res);
+		});
 	}
 
 

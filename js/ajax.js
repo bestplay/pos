@@ -1,5 +1,17 @@
-
-function ajax(url,method,cb){
+function ajax(url,method,data,cb){
+	var qs = ""
+	if(method.toLowerCase == "get"){
+		qs = null;
+	}else{
+		if(typeof data == "object"){
+			qs = JSON.stringify(data);
+		}else if(typeof data == "string"){
+			qs = data;
+		}else{
+			throw "data need a object or string type";
+			return;
+		}
+	}
 	var xmlhttp=new XMLHttpRequest();
 	xmlhttp.timeout = 3000;
 	// xmlhttp.ontimeout = function (e) {
@@ -13,14 +25,16 @@ function ajax(url,method,cb){
 				// ...our code here...
 				// xmlhttp.responseText
 
-				cb(null,xmlhttp.responseText);
+				cb(xmlhttp.responseText);
 			} else {
 				// alert("Problem retrieving XML data");
-				cb("Problem retrieving XML data",xmlhttp.responseText);
+				// cb("Problem retrieving XML data",xmlhttp.responseText);
+				alert("AJAX 请求错误");
+				return;
 			}
 		}
 	};
 	xmlhttp.open(method,url,true);
-	xmlhttp.send(null);
+	xmlhttp.send(qs);
 }
 

@@ -7,15 +7,18 @@ function handler(m,res){
 	switch(m.act){
 		case "getGoods":
 			dbm.getGoodsInfo(m.bcode,function(e,r){
-				console.log('1111');
 				if(e){ console.log(e); }
-				res.end(r);
+				
+				console.log("response: ",r);
+				res.end(JSON.stringify(r));
 			});
 			break;
 
 		default :
+			res.end(JSON.stringify(m));
 			break;
 	}
 }
 
 module.exports = handler;
+ 

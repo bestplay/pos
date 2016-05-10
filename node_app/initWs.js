@@ -8,9 +8,11 @@ function httpServer(callback){
 	var server = http.createServer(function(req,res){
 		// handle messages...
 		if(req.method == "GET"){
+			console.log("GET");
 			var params = url.parse(req.url,true).query;
 			router(params,res);
 		}else{
+			console.log("POST");
 			var data = "";
 			req.on('data',function(c){
 				data += c;

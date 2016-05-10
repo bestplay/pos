@@ -22,6 +22,7 @@ ui.init = function(){
 	var dialog = document.getElementById("dialog");
 	var settle_btn = document.getElementById("settle_btn");
 	var sum = document.getElementById("sum");
+	var bottom_panel = document.getElementById("bottom_panel");
 
 
 	// forcus input panel when inited.
@@ -44,6 +45,17 @@ ui.init = function(){
 		onClickSettle();
 	}
 
+	function switchMask(f){
+		var mask = "none";
+		var btmPanel = "visible";
+		if(f){
+			btmPanel = 'hidden';
+			mask = "block";
+		}
+		waitMask.style.display = mask;
+		bottom_panel.style.visibility = btmPanel;
+	}
+
 	// click ENTER at barcode input panel.
 	function onBcClickEnter(){
 		var bcode = barcode.value.trim();
@@ -61,16 +73,20 @@ ui.init = function(){
 			ui.orderStatus = O_WAIT;
 		}
 
-		// TODO query barcode from DB 
-		var url = ui.url + '?act=getGoods&bcode=' + bcode;
-		ajax(url,'get',function(e,result){
-			var r;
-			if(result){
-				r = JSON.parse(result);
-				addGoodsToCart(r);
+		var url = ui.url;
+		var data = {act:"getGoods",bcode:bcode};
+		ajax(url,'post',data,function(result){
+			var r = JSON.parse(result);
+			if(r){
+				if(r.price){
+					addGoodsToCart(r);
+				}else{
+					// TODO set price..
+					alterGoodsDlg(r);
+				}
 			}else {
 				// add new goods.
-				saveNewGoodsToDB(bcode);
+				getGoodsInfoFromInternet(bcode);
 			}
 		})
 	}
@@ -178,9 +194,9 @@ ui.init = function(){
 
 		var no = ui.goodsArr.length;
 		var str = "<td>" + no + "</td>";
-		str += "<td>" + item.barcode + "</td>";
+		str += "<td>" + item.bcode + "</td>";
 		str += "<td>" + item.name + "</td>";
-		str += "<td>" + item.price + "</td>";
+		str += "<td>" + (item.price || "") + "</td>";
 		str += "<td>" + item.count + "</td>";
 		str += "<td>" + item.price * item.count + "</td>";
 
@@ -189,89 +205,89 @@ ui.init = function(){
 		sum.innerHTML = ui.goodsSum;
 	}
 
-	function saveNewGoodsToDB(barcode){
-		query(barcode,function(err,info){
-			if(err){
-				console.log(err);
-				return;
-			}
-			var i;
-			try{
-				i = JSON.parse(info);
-			}catch(e){
-				return;
-			}
-			if(i && i.price){
+	function getGoodsInfoFromInternet(bcode){
+		var url = "https://www.baidu.com/s?wd=" + bcode;
+		ajax(url,'get','',function(r){
+			var el = document.createElement( 'html' ); 
+			el.innerHTML = r;
 
-			}
-			if(i && i.titleSrc){
-				var fs = require("fs");
-				var http = require("http");
-				var path = require("path");
-				var picPath = path.join('.','tmp','barcod_name.png');
-				console.log(i.titleSrc);
-				http.get(i.titleSrc, function(res){
-					var d = "";
-					res.setEncoding("binary")
-					res.on("data",function(chunk){
-						console.log(chunk.length);
-						d += chunk;
-					})
-					res.on("end",function(){
-						console.log(picPath);
-						try {
-							fs.writeFileSync(picPath, d, "binary");
+			var content = el.getElementsByClassName("c-container");
 
-						} catch (e) {
-							console.log(e);
-							return;
-						} finally {
+			// console.log(content[0]);
 
-						}
-						// use ocr
-						var tesseractPath = path.join("tools","Tesseract","tesseract");
-						var txtPath = path.join('tmp','barcode_name');
-						var cmdStr = tesseractPath + ' "' + picPath + '" "' + txtPath + '" -l chi_sim -psm 6';
-						exec(cmdStr,function(err,stdout,stderr){
-							if(err){
-								console.log(err);
-								return;
-							}
-							try {
-								var name = fs.readFileSync(txtPath + '.txt');
-							} catch (e) {
-								console.log(e);
-								return;
-							} finally {
+			// first <a> 			inner
+			// class c-abstract 	inner
+			// delet <em>
 
-							}
-
-							var nameEle = document.getElementById('dialog_name');
-							var price2Ele = document.getElementById('dialog_price2');
-							nameEle.value = name;
-							price2Ele.innerHTML = i.price;
+			console.log('length:  ',content.length);
 
 
-						});
-					})
-				});
+			var newEl = document.createElement('textarea');
+			newEl.style.color = "#000";
+			newEl.style.width = "300px";
+			newEl.style.height = "200px";
+			newEl.style.fontSize = "28px";
+			newEl.style.fontWeight = "bold";
+			newEl.style.padding = "0px 10px 40px 10px";
+			newEl.style.overflowY = "scroll";
+			newEl.style.overflowX = "hidden";
+			newEl.id = "searchInfo";
+			// newEl.style.display = "none";
+
+			var c_str = "";
+			for(var i=0; i<content.length; i++){
+				console.log('----------------',i);
+				var e = content[i];
+
+				var t = e.getElementsByTagName("a")[0].innerHTML;
+				var c = e.getElementsByClassName("c-abstract")[0].innerHTML;
+				t = t.replace(/<em>[^<]*<\/em>/,"    ");
+				c = c.replace(/<em>[^<]*<\/em>/,"    ");
+				c_str += ( t + '\n\n' + c + '\n\n' );
 			}
 
+			newEl.innerHTML = c_str;
+			newEl.onselect = function(){
+				var s = window.getSelection().toString();
+				console.log(s);
+			};
+
+			document.body.appendChild(newEl);
 		});
-		var dialog = document.getElementById("dialog");
+	}
 
+	// update or insert to DB.
+	function saveGoodsInfoToDB(goods,callback){
+		// TODO
+		var data = { act: "saveGoods", goods:goods };
+
+		ajax(ui.url,'post',data,function(r){
+			console.log(r);
+			callback();
+		})
+	}
+
+
+	function alterGoodsDlg(goods){
+		switchMask(true);
+		function freezeInput(v){
+			var r = v ? ' value="'+v+'" disabled="disabled" ' : '';
+			return r;
+		}
+
+		var dialog = document.getElementById("dialog");
 		var str = '<div style=>';
 		str += '<p>';
-		str += '条形码：<span  id="dialog_barcode">' + barcode + '</span>';
+		str += '条形码：<span  id="dialog_barcode">' + goods.bcode + '</span>';
 		str += '</p>';
 		str += '<p>';
-		str += '商品名称：<input autocomplete="off" id="dialog_name" type="text" />';
+		str += '商品名称：<input autocomplete="off" id="dialog_name" type="text"'+freezeInput(goods.name)+'/>';
 		str += '</p>';
 		str += '<p>';
-		str += '商品价格：<input autocomplete="off" id="dialog_price" type="number" /> 元';
+		str += '商品价格：<input autocomplete="off" id="dialog_price" type="number"'+freezeInput(goods.price)+'/> 元';
 		str += '</p>';
 		str += '<p>';
-		str += '参考价格：<span id="dialog_price2"></span>元';
+		str += '参考价格：<span id="dialog_price2">'+goods.other_price+'</span>元';
 		str += '</p>';
 		str += '<p>';
 		str += '<input autocomplete="off" id="dialog_submit" type="button" value="保存" />';
@@ -279,7 +295,7 @@ ui.init = function(){
 		str += '</p>';
 
 		str += '<p>';
-		str += '<span id="dialog_tips" style="visibility:hidden;color:red;">[商品名称]或者[商品价格]未填写</span>';
+		str += '<span id="dialog_tips" style="visibility:hidden;color:red;">[商品名称]或者[商品价格]填写错误</span>';
 		str += '</p>';
 
 		str += '</div>';
@@ -289,35 +305,39 @@ ui.init = function(){
 
 		// todo query goods from internet.
 
-
-
 		var submitBtn = document.getElementById("dialog_submit");
 		var cancleBtn = document.getElementById("dialog_cancle");
+
+		var dialog_barcode = document.getElementById("dialog_barcode");
+		var dialog_name = document.getElementById("dialog_name");
+		var dialog_price = document.getElementById("dialog_price");
+		var dialog_tips = document.getElementById("dialog_tips");
 		cancleBtn.onclick = function(){
 			dialog.style.display = "none";
+			submitBtn.disabled = false;
+			switchMask(false);
 			// todo abort all requests.
 		}
 		submitBtn.onclick = function(){
 			// check input
-			var dialog_barcode = document.getElementById("dialog_barcode");
-			var dialog_name = document.getElementById("dialog_name");
-			var dialog_price = document.getElementById("dialog_price");
-			var dialog_tips = document.getElementById("dialog_tips");
+			submitBtn.disabled = true;
 
 			if(!dialog_price.value || !dialog_name.value){
 				dialog_tips.style.visibility = "visible";
+				submitBtn.disabled = false;
+
 			}else {
 
-				var item = {};
-				item.barcode = dialog_barcode.innerHTML;
-				item.name = dialog_name.value;
-				item.price = dialog_price.value;
+				goods.name = dialog_name.value;
+				goods.price = dialog_price.value;
 
-				console.log(item);
-
-				localStorage.setItem(item.barcode,JSON.stringify(item));
-
-				dialog.style.display = "none";
+				console.log(goods);
+				// TODO save goods to DB
+				saveGoodsInfoToDB(goods,function(){
+					dialog.style.display = "none";
+					submitBtn.disabled = false;
+					switchMask(false);
+				});
 			}
 		}
 	}

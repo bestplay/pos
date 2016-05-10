@@ -144,5 +144,13 @@ function distinct(){
 }
 
 
-distinct();
+// distinct();
+
+
+var s = "SELECT * FROM GOODS WHERE bcode=? LIMIT 1";
+console.log(typeof s);
+dbm.db.all(s,6908512109737,function(e,r){
+	console.log(e);
+	console.log(r);
+});
 
