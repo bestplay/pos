@@ -29,7 +29,11 @@ function ajax(url,method,data,cb){
 			} else {
 				// alert("Problem retrieving XML data");
 				// cb("Problem retrieving XML data",xmlhttp.responseText);
-				alert("AJAX 请求错误");
+				if(url.indexOf("localhost") == -1){
+					cb();
+				}else{
+					alert("AJAX 请求错误");
+				}
 				return;
 			}
 		}
