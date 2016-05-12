@@ -107,7 +107,7 @@ var wrapper = function(){
 		insert_keys_str = insert_keys_str.slice(1);
 
 		getGoodsInfo(goods.bcode,function(e,r){
-			if(r && r.length > 0){
+			if(r){
 				// update
 				sql = 'UPDATE GOODS SET ' + update_keys_str;
 				sql += ('WHERE bcode=?');
