@@ -5,7 +5,13 @@ var exec = require('child_process').exec;
 
 function printOrder(str,cb){
 	var cmdStr = path.join("..","tools","printer");
-	cmdStr += ' -t "'+ str +'"';
+	var a = str.split('\n');
+	var s = "";
+	for(var i=0; i<a.length; i++){
+		s += ' -t "' + a[i] + '"';
+	}
+	cmdStr += s;
+	console.log('Print cmd: ',cmdStr);
 	exec(cmdStr,function(err,stdout,stderr){
 		console.log(err);
 		console.log(stdout);

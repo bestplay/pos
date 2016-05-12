@@ -46,34 +46,6 @@ var wrapper = function(){
 		});
 	}
 
-	function test_sql(){
-		global.console.log('db......................');
-		var sqlite3 = require('sqlite3').verbose();
-		var db = new sqlite3.Database('test.sqlite3', function(err){
-			if(err){
-				// TODO DB error
-				console.log(err); return;
-			}
-
-			db.serialize(function() {
-				db.run("CREATE TABLE lorem (info TEXT)");
-
-				var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-				for (var i = 0; i < 10; i++) {
-						stmt.run("Ipsum " + i);
-				}
-				stmt.finalize();
-
-				db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-						console.log(row.id + ": " + row.info);
-				});
-			});
-
-			db.close();
-		});
-		return("1234456");
-	}
-
 	function getGoodsInfo(bcode,cb){
 		var s = "SELECT * FROM GOODS WHERE bcode=? LIMIT 1";
 		db.all(s,bcode,function(e,r){
@@ -90,14 +62,20 @@ var wrapper = function(){
 	}
 
 	function saveGoods(goods,cb){
-		//  
+		//  bcode
+		if(!Number(goods.bcode) || goods.bcode.toString().indexOf('.') != -1 || (goods.price && (!Number(goods.price) || (goods.price + '.').split('.')[1].length > 2 ))){
+			console.log("[saveGoods]",'goods data error!');
+			return;
+		}
+
+
 		var sql = "";
 		var keys = Object.getOwnPropertyNames(goods);
 		var values = [];
 		var update_keys_str = "";
 		var insert_keys_str = "";
 		for(var i=0; i<keys.length; i++){
-			values.push(goods[keys[i]]);
+			values.push(goods[keys[i]].trim());
 
 			update_keys_str += (',' + keys[i] + '=? ');
 			insert_keys_str += ',?';
@@ -111,7 +89,7 @@ var wrapper = function(){
 				// update
 				sql = 'UPDATE GOODS SET ' + update_keys_str;
 				sql += ('WHERE bcode=?');
-				values.push(goods.bcode);
+				values.push(goods.bcode.trim());
 
 			}else{
 				// insert
@@ -135,7 +113,6 @@ var wrapper = function(){
 	ret_obj.getGoodsInfo = getGoodsInfo;
 	ret_obj.isTableExsit = isTableExsit;
 	ret_obj.db = db;
-	ret_obj.test_sql = test_sql;
 	ret_obj.createGoodsTable = createGoodsTable;
 	return ret_obj;
 }

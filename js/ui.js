@@ -5,7 +5,7 @@ ui.goodsArr = [];
 ui.goodsSum = 0.00;
 
 ui.orderStatus = 0;
-ui.url = 'http://localhost:' + localParams.localWsPort;
+ui.url = 'http://localhost:' + config.localWsPort;
 
 
 ui.init = function(){
@@ -24,6 +24,7 @@ ui.init = function(){
 	var settle_btn = document.getElementById("settle_btn");
 	var sum = document.getElementById("sum");
 	var bottom_panel = document.getElementById("bottom_panel");
+	var modify_goods = document.getElementById("modify_goods");
 
 
 	// forcus input panel when inited.
@@ -33,31 +34,57 @@ ui.init = function(){
 		onClickSettle();
 	}
 
+	modify_goods.onclick = function(){
+		modifyGoodsDlg();
+	}
+
 	barcode.onkeypress = function(){
 		if(event.keyCode!=13){ return; }
 		onBcClickEnter();
 	}
 
-	// onpress F5 to check out.
 	document.body.onkeydown = function(){
-			if( event.keyCode != 116 || ui.goodsArr.length == 0 ){
-			return;
+		// onpress F5 to check out.
+		if( event.keyCode == 116 ){
+			onClickSettle();
+		// press DELETE to remove
+		}else if( event.keyCode == 46 ){
+			// freeze order changing while showing masks.
+			if(waitMask.style.display != "none"){
+				return;
+			}
+			removeLastGoods();
 		}
-		onClickSettle();
+		
+	}
+	// TODO 
+	function modifyGoodsDlg(){
+		var str = '';
+
+		dlg_cnt.innerHTML = str;
+		initDlg();
 	}
 
+	function hideDialog(){
+		switchMask(false);
+		dialog.style.display = "none";
+		dlg_cnt.innerHTML = "";
+	}
  
 	function getOrderData(){
 		// prepare order data.
 		var order = {};
 		var gs = ui.goodsArr;
 		for(var i=0;i<ui.goodsArr.length; i++){
-			var ikey = gs[i].barcode;
+			var ikey = gs[i].bcode;
 			var ival = gs[i];
 			if(order[ikey]){
 				order[ikey].count = order[ikey].count + ival.count;
 			}else {
-				order[ikey] = ival;
+				order[ikey] = {};
+				order[ikey].count = ival.count;
+				order[ikey].name = ival.name;
+				order[ikey].price = ival.price;
 			}
 		}
 
@@ -67,33 +94,32 @@ ui.init = function(){
 		for (var i = 0; i < nArr.length; i++) {
 			dataArr.push(order[nArr[i]]);
 		}
-
+		console.log(dataArr);
 		return dataArr;
 	}
 
 	function formatPrint(goodsArr){
 		var bSep = "================================" + "\n";
 		var lSep = "--------------------------------" + "\n";
-		var str = bSep;
+		var str = "";
+		str += "欢迎光临 "+ config.shopName +"\n";
+		str += bSep;
 		str += "商品名称/价格/数量/金额" + "\n";
 		str += lSep;
 		var it;
+		var count = 0;
 		for (var i = 0; i < goodsArr.length; i++) {
 			it = goodsArr[i];
 			str += it.name + ' /' + it.price + '/' + it.count + '/'  + it.count * it.price + '\n';
 			str += lSep;
+			count += it.count;
 		}
-		str += "消费" + goodsArr.length + "项, 合计:" + ui.goodsSum + "元" + '\n';
+		str += "消费" + goodsArr.length + "类("+count+"件), 合计:" + ui.goodsSum + "元" + '\n';
 		str += bSep;
-		str += "销售时间:" + (new Date()).toLocaleString() + '\n';
-		str += "谢谢惠顾 --翡翠芳龄超市";
+		str += "销售时间:" + (new Date()).toLocaleString();
 
 		return str;
 	}
-
-
-
-
 
 	function switchMask(f){
 		var mask = "none";
@@ -109,19 +135,31 @@ ui.init = function(){
 	// click ENTER at barcode input panel.
 	function onBcClickEnter(){
 		var bcode = barcode.value.trim();
+		barcode.select();
 		if(!bcode){
 			return;
 		}
 
 		if(ui.orderStatus == O_FINISHED){
-
 			// clear ui.goodsArr;
 			ui.goodsArr = [];
 			ui.goodsSum = 0.00;
 			initCartUI();
-			dialog.style.display = "none";
-			di
+			hideDialog();
+			
 			ui.orderStatus = O_WAIT;
+		}
+		if( !Number(bcode) || bcode.toString().indexOf('.') != -1 ){
+			console.log("Barcode type error!");
+			var tips_str = ' @@-> 请检查编码?!';
+			var pos = barcode.value.indexOf(tips_str);
+			if(pos != -1){
+				barcode.value = barcode.value.slice(0,pos) + tips_str;
+			}else{
+				barcode.value += tips_str;
+			}
+			barcode.select();
+			return;
 		}
 
 		var url = ui.url;
@@ -132,7 +170,7 @@ ui.init = function(){
 				if(r.price){
 					addGoodsToCart(r);
 				}else{
-					// TODO set price..
+					// set price..
 					alterGoodsDlg(r);
 				}
 			}else {
@@ -144,6 +182,10 @@ ui.init = function(){
 
 	// click settle button.
 	function onClickSettle(){
+		if( ui.goodsArr.length == 0 ){
+			console.log("There is no goods.")
+			return;
+		}
 		// ui.orderStatus += 1;
 		if(ui.orderStatus == 0){
 			// show dialog
@@ -157,29 +199,35 @@ ui.init = function(){
 	}
 	// show settle dialog
 	function showSettleDlg(){
+		var width = 400;
+		var height = 300;
 		ui.orderStatus = O_CONFIRM;
 
-		initDlg(400,300);
+
+		var orderDataArr = getOrderData();
+		var pStr = formatPrint(orderDataArr);
+		var preStr = pStr.replace(/\n/g,'<br>');
+
 		console.log('showSettleDlg');
 		var str = "";
-		str += '<p>';
-		str += ''
+		str += '<p style="height:'+(height-50)+'px;overflow-x:hidden;overflow-y:scroll;">';
+		str += preStr;
+		str += '<input id="print_string" value="'+preStr+'" style="display:none" />';
 		str += '</p>';
 
 
 		str += '<p>';
-		str += '<input autocomplete="off" id="dialog_submit" type="button" value="打印结账" />';
+		str += '<input autocomplete="off" id="dialog_submit" type="button" value="打印结账" />'; 	// TODO 第二次变为 “重新打印”
 		str += '<input autocomplete="off" id="dialog_cancle" type="button" value="取消" />';
 		str += '</p>';
 		dlg_cnt.innerHTML = str;
-		dialog.style.display = "block";
+		initDlg(width,height);
 
 
 		var submitBtn = document.getElementById("dialog_submit");
 		var cancleBtn = document.getElementById("dialog_cancle");
 		cancleBtn.onclick = function(){
-			dlg_cnt.innerHTML = "";
-			dialog.style.display = "none";
+			hideDialog();			
 			// set orderStatus back to last status.
 			ui.orderStatus = O_WAIT;
 		}
@@ -189,27 +237,27 @@ ui.init = function(){
 	}
 
 	// comfirmSettle printer and finish order.
-	function confirmSettle(cb){
+	function confirmSettle(){
+		var printStr = document.getElementById('print_string').value;
 		ui.orderStatus = O_CHECKING;
-		var dataArr = getOrderData();
-		var pStr = formatPrint(dataArr);
-		console.log(pStr);
-
+		console.log(printStr);
 
 		// TODO print..
+		var data = { act:"print",info:printStr };
 
-		var data = { act:"print",info:pStr };
+		var submitBtn = document.getElementById("dialog_submit");
+		submitBtn.value = "重新打印";
 		ajax(ui.url,'post',data,function(r){
 			console.log(r);
-			cb();
+			
 		})
 
 
 		// clear ui.goodsArr;
-		// ui.goodsArr = [];
-		// ui.goodsSum = 0.00;
-		// initCartUI();
-		// dialog.style.display = "none";
+		ui.goodsArr = [];
+		ui.goodsSum = 0.00;
+		initCartUI();
+		// hideDialog();
 		ui.orderStatus = O_FINISHED;
 	}
 
@@ -237,7 +285,6 @@ ui.init = function(){
 		ui.goodsArr.push(item);
 		ui.goodsSum =  Math.round(( ui.goodsSum + item.count * item.price ) * 100) / 100;
 
-
 		var e = document.createElement("tr");
 
 		var no = ui.goodsArr.length;
@@ -251,6 +298,28 @@ ui.init = function(){
 		e.innerHTML = str;
 		goods_list.appendChild(e);
 		sum.innerHTML = ui.goodsSum;
+
+		if(ui.goodsSum.toString().length >= 8){
+			alert("总价真的这么多？再检查下！");
+		}
+	}
+	// remove last goods from cart
+	function removeLastGoods(){
+		if(ui.goodsArr.length == 0){
+			return;
+		}
+		var it = ui.goodsArr.pop();
+		if(ui.goodsSum == 0){
+			alert("程序有错。总价已经为零！！！");
+			return;
+		}
+		ui.goodsSum = Math.round(( ui.goodsSum - it.count * it.price ) * 100 ) / 100;
+
+		sum.innerHTML = ui.goodsSum;
+		// TODO remove last <tr> element from  goods_list
+		var els = goods_list.getElementsByTagName('tr');
+		var el = els[els.length-1];
+		el.parentNode.removeChild(el);
 	}
 
 	function getGoodsInfoFromInternet(bcode){
@@ -263,25 +332,10 @@ ui.init = function(){
 
 		var url = "https://www.baidu.com/s?wd=" + bcode;
 		ajax(url,'get','',function(r){
-			if(!r){
-				console.log(bcode," search result is null");
-				return;
-			}
-			var el = document.createElement( 'html' ); 
-			el.innerHTML = r;
-
-			var content = el.getElementsByClassName("c-container");
-
-			// console.log(content[0]);
-
-			// first <a> 			inner
-			// class c-abstract 	inner
-			// delet <em>
-
-			console.log('length:  ',content.length);
 
 
 			var newEl = document.createElement('textarea');
+
 			newEl.style.color = "#000";
 			newEl.style.width = "100%";
 			newEl.style.height = "100%";
@@ -295,25 +349,50 @@ ui.init = function(){
 			newEl.id = "searchInfo";
 			// newEl.style.display = "none";
 
-			var c_str = "";
-			for(var i=0; i<content.length; i++){
-				console.log('----------------',i);
-				var e = content[i];
+			try{
+				var el = document.createElement( 'html' ); 
+				el.innerHTML = r;
 
-				var t = e.getElementsByTagName("a")[0].innerHTML;
-				var c = e.getElementsByClassName("c-abstract")[0].innerHTML;
-				t = t.replace(/<em>[^<]*<\/em>/,"    ");
-				c = c.replace(/<em>[^<]*<\/em>/,"    ");
-				c_str += ( t + '\n\n' + c + '\n\n' );
+				var content = el.getElementsByClassName("c-container");
+
+				// console.log(content[0]);
+
+				// first <a> 			inner
+				// class c-abstract 	inner
+				// delet <em>
+
+				console.log('length:  ',content.length);
+
+				var c_str = "";
+				for(var i=0; i<content.length; i++){
+					console.log('----------------',i);
+					var e = content[i];
+
+					var t = e.getElementsByTagName("a")[0].innerHTML;
+					var c = e.getElementsByClassName("c-abstract")[0].innerHTML;
+					t = t.replace(/<em>[^<]*<\/em>/,"    ");
+					c = c.replace(/<em>[^<]*<\/em>/,"    ");
+					c_str += ( t + '\n\n' + c + '\n\n' );
+				}
+
+				newEl.innerHTML = c_str;
+
+			}catch(e){
+				newEl.innerHTML = '';
 			}
 
-			newEl.innerHTML = c_str;
 			newEl.onselect = function(){
 				var s = window.getSelection().toString();
 				nameEl.value = s.trim();
 			};
 
 			web_search.appendChild(newEl);
+
+			if(!r || !newEl.innerHTML.trim()){
+				console.log(bcode," search result is null");
+				newEl.innerHTML = "没有搜索到参考数据。"
+				return;
+			}
 		});
 	}
 
@@ -329,6 +408,7 @@ ui.init = function(){
 	}
 
 	function initDlg(width,height){
+		switchMask(true);
 		dlg_cnt.style.width = width + "px";
 		dlg_cnt.style.height = height + "px";
 		dlg_cnt.style.left = "-"+ (width/2) +"px";
@@ -336,11 +416,13 @@ ui.init = function(){
 		dialog.style.display = "block";
 	};
 
-	function alterGoodsDlg(goods){
-		switchMask(true);
-		initDlg(600,400);
+	function alterGoodsDlg(goods,enable){
 		function freezeInput(v){
-			var r = v ? ' value="'+v+'" disabled="disabled" ' : '';
+			var attr_string = 'disabled="disabled" '
+			if(enable){
+				attr_string = '';
+			}
+			var r = v ? ' value="'+v+'" ' + attr_string : '';
 			return r;
 		}
 
@@ -369,6 +451,7 @@ ui.init = function(){
 		str += '</div>';
 
 		dlg_cnt.innerHTML = str;
+		initDlg(600,400);
 
 		var webSearch = document.createElement("div");
 		webSearch.id = "web_search";
@@ -378,7 +461,7 @@ ui.init = function(){
 
 		dlg_cnt.appendChild(webSearch);
 
-		// todo query goods from internet.
+		// query goods from internet.
 
 		var submitBtn = document.getElementById("dialog_submit");
 		var cancleBtn = document.getElementById("dialog_cancle");
@@ -388,31 +471,28 @@ ui.init = function(){
 		var dialog_price = document.getElementById("dialog_price");
 		var dialog_tips = document.getElementById("dialog_tips");
 		cancleBtn.onclick = function(){
-			dlg_cnt.innerHTML = "";
-			dialog.style.display = "none";
+			hideDialog();
 			// submitBtn.disabled = false;
-			switchMask(false);
+			
 			// todo abort all requests.
 		}
 		submitBtn.onclick = function(){
 			// check input
 			submitBtn.disabled = true;
 
-			if(!dialog_price.value || !dialog_name.value){
+			// check values
+			if(!dialog_price.value || !dialog_name.value || !Number(dialog_price.value) || (dialog_price.value + '.').split('.')[1].length > 2 ){
 				dialog_tips.style.visibility = "visible";
 				submitBtn.disabled = false;
-
 			}else {
 
 				goods.name = dialog_name.value;
 				goods.price = dialog_price.value;
 
 				console.log(goods);
-				// TODO save goods to DB
+				// save goods to DB
 				saveGoodsInfoToDB(goods,function(){
-					dlg_cnt.innerHTML = "";
-					dialog.style.display = "none";
-					switchMask(false);
+					hideDialog();
 				});
 			}
 		}

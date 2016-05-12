@@ -5,7 +5,10 @@
 var initWs = require('./initWs.js');
 var initWeb = require('./initWeb.js');
 
+
 function run(){
+
+
 	initWs(function(){
 		// init webpage
 		initWeb();
