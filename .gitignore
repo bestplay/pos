@@ -8,3 +8,4 @@ node_modules
 .pydevproject
 *courgette.log
 *.sqlite3_bak
+*.sqlite3

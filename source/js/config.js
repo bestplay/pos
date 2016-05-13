@@ -1,0 +1,1 @@
+config = {"localWsPort":10007, shopName:"翡翠芳邻超市"};

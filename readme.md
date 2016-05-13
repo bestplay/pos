@@ -24,3 +24,16 @@ npm install sqlite3 --build-from-source --runtime=node-webkit --target_arch=ia32
 - win32 后台启动 node (或者直接使用 node.exe + 运行参数)
 
 - check process 检查 node webkit 运行状态。如果退出则跟着退出。
+
+
+// 查找进程信息	
+wmic process get name,executablepath,processid|findstr pid
+
+
+
+
+
+
+// launcher
+	WinExec("\"C:\\Users\\wayne lu\\Desktop\\pos\\node_app\\node.exe\" \"C:\\Users\\wayne lu\\Desktop\\pos\\node_app\\main.js\"", SW_HIDE);
+	return 0;
