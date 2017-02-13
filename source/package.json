@@ -1,11 +1,13 @@
 {
   "name": "POS-system",
   "main": "index.html",
+  "node-main": "nwIndex.js",
   "window": {
     "title": "Tiny POS",
-    "width": 800,
-    "height": 600,
-    "min_width": 800,
+    "toolbar": false,
+    "width": 1000,
+    "height": 720,
+    "min_width": 900,
     "min_height": 600
   },
   "dependencies": {

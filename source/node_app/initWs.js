@@ -20,6 +20,7 @@ function httpServer(callback){
 			req.on('end',function(){
 				try{
 					data = JSON.parse(data);
+					console.log(data)
 				}catch(e){
 					console.log(e);
 				}

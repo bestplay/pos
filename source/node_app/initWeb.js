@@ -9,6 +9,9 @@ var nwapp_path = path.join(__dirname,'..');
 function startWeb(){
     // open web page.
 	var cmd = '"' + nw_path + '" "' + nwapp_path + '"';
+
+			// for multiple monitors.
+			cmd = '"' + path.join(nwapp_path,'..','nw.lnk') + '"'; 
 	// console.log(cmd);
 	exec(cmd,console.log);
 }

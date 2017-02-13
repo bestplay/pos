@@ -1,6 +1,10 @@
 <html>
 <head>
+
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <script type="text/javascript">
+    
+  </script>
   <style>
     html, body, p, ul, li {
       margin: 0;
@@ -23,14 +27,15 @@
     }
 
     .search_r_item{
-      border: 1px solid #fff;
+      border: 1px solid #000;
       border-bottom: none;
     }
     .search_r_item:hover{
-      background: #000;
+      background: blue;
+      color: #fff;
     }
     .search_r_item:last-child{
-      border-bottom: 1px solid #fff;
+      border-bottom: 1px solid #000;
     }
     .search_r_item span {
       padding: 8px;
@@ -39,10 +44,12 @@
       overflow: hidden;
     }
     input[type=text],input[type=number] {
-      height: 30px;
+      font-size: 30px;
     }
     input[type=button]{
-      padding:7px 20px;
+      text-align: center;
+      font-size: 25px;
+      padding:7px 10px;
       margin: 0 10px;
     }
 
@@ -75,12 +82,12 @@
   </style>
 </head>
 <body style="color:#fff;margin:0;padding:0;">
-<div style="height:100%;background:#000;">
+<div id="mainContent" style="height:100%;background:#000;-webkit-user-select:none;">
   <!-- head -->
   <div class="b_border" style="height:20%;padding:0 40px;font-weight:bold;line-height:100%; ">
     <div style="font-size:50px;line-height:120px;text-align:right;color:#0f0;">
       <span>总计： </span>
-      <span id="sum" style="font-size:100px">0.00</span>
+      <span id="sum" style="font-size:140px;font-weight:bold;">0.00</span>
       <span>元</span>
     </div>
   </div>
@@ -94,8 +101,8 @@
       <span class="tb_head" style="width:50px">数量</span>
       <span class="tb_head" style="width:150px">金额</span>
     </div> -->
-    <table id="goods_list" style="">
-      <tr>
+    <table id="goods_list">
+      <tr style="font-size: 22px;font-weight: bold;">
         <th style="width:5%">序号</th>
         <th style="width:25%">商品编号</th>
         <th style="width:30%">商品名称</th>
@@ -108,12 +115,12 @@
   </div>
   <!-- bottom -->
   <div id="bottom_panel" style="height:10%;">
-    <div style="margin:15px 0 0 20px;padding:0;display:inline-block;">
+    <div style="margin:5px 0 0 10px;padding:0;display:inline-block;">
       <!-- <form id="bc_form" method="post" action="#" style="margin:15px 0 0 20px;padding:0;display:inline-block;"> -->
-        <span>请输入商品编码</span>
-        <input  autocomplete="off" id="barcode" type="text" name="barcode" value="" style="width:300px;height:30px;">
-        <input id="settle_btn" type="button" name="name" value="[F5] 结算" >
-        <input  autocomplete="off" id="modify_goods" type="button" value="修改商品" >
+        <span style="font-size:25px">请输入商品编码</span>
+        <input  autocomplete="off" id="barcode" type="text" name="barcode" value="" style="width:350px;">
+        <input id="settle_btn" type="button" name="name" style="font-size:30px;" value="[F5] 结算" >
+        <input  autocomplete="off" id="modify_goods" type="button" style="font-size:30px;" value="修改商品" >
       <!-- </form> -->
     </div>
   </div>
@@ -122,8 +129,8 @@
 
 
 <!-- popup dialog -->
-<div id="dialog" style="display:none;position:absolute;left:50%;top:50%;z-index:10;width:1px;height:1px">
-  <div id="dialog_content" style="padding:10px;box-sizing:bolder-box;position:relative;background:rgb(0, 68, 5);width:400px;">
+<div id="dialog" style="display:none;position:absolute;left:50%;top:50%;z-index:10;width:1px;height:1px;font-size:25px;">
+  <div id="dialog_content" style="padding:10px;box-sizing:bolder-box;position:relative;background:yellow;width:400px;border:2px solid blue;border-radius: 5px;color:#000;">
 
   </div>
 </div>

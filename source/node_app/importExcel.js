@@ -10,6 +10,12 @@ var xlsx = require('node-xlsx');
 var dbm = require('./dbm.js');
 function importData(){
 	dbm.createGoodsTable(function(){
+			dbm.db.all('select count(*) from goods',function(e,r){
+				console.log('GOODS COUNT : ',r);
+			});
+			return;
+
+
 		console.log('# Import ---------------------');
 
 		var sql = "INSERT INTO GOODS (name,bcode,specifi,unit,price,other_price,cost) VALUES (?,?,?,?,?,?,?)";
@@ -22,8 +28,50 @@ function importData(){
 
 
 
-		var res = xlsx.parse('../barcodeData/bc1.xls');
+		var res = xlsx.parse('./barcode11.xlsx');
 		var d = res[0].data;
+
+			var keys = Object.getOwnPropertyNames(d);
+			// console.log(typeof d);
+			// console.log(d[keys[0]],d[keys[1]],d[keys[2]]);
+			// console.log('===============1');
+			// var kk = keys[keys.length-2];
+
+			// console.log(d[kk]);
+			// console.log('===============2');
+
+			var item;
+			function cl(it){
+				if(!it){
+					return "";
+				}
+				var res;
+				res = it.trim ? it.trim() : it ;
+				return res;
+			}
+			for(var i=1;i<keys.length;i++){
+				item = d[keys[i]];
+
+				dbm.db.run(sql3,cl(item[0]),cl(item[1]),cl(item[2]),cl(item[3]),cl(item[4]),function(e,r){
+					if(e){
+						console.log(i)
+					}
+				})
+			}
+
+
+
+
+
+			// console.log(d.[0],d.[1],d.[2]);
+			// console.log('-----------last one:');
+			// console.log(d.[d.length-1]);
+
+
+
+			return;
+
+
 
 		for(var i=0; i<d.length; i++){
 			if(!d[i][1]){continue;}
@@ -36,42 +84,6 @@ function importData(){
 
 			dbm.db.run(sql1,d[i]);
 		}
-
-
-
-		res = xlsx.parse('../barcodeData/bc3.xls');
-		d = res[0].data;
-
-		for(var i=0; i<d.length; i++){
-			if(!d[i][1]){continue;}
-
-			for(var k=0;k<d[i].length; k++){
-				if(typeof d[i][k] == "string"){
-					d[i][k] = d[i][k].trim();
-				}
-			}
-			d[i][4] && (d[i][4] = d[i][4] * 100);
-			dbm.db.run(sql3,d[i]);
-		}
-
-		res = xlsx.parse('../barcodeData/bc4.xls');
-		for(var j=0; j<res.length; j++){
-
-			d = res[j].data;
-
-			for(var i=0; i<d.length; i++){
-				if(!d[i][0]){continue;}
-
-				for(var k=0;k<d[i].length; k++){
-					if(typeof d[i][k] == "string"){
-						d[i][k] = d[i][k].trim();
-					}
-				}
-				dbm.db.run(sql4,d[i]);
-			}
-		}
-
-
 
 		dbm.db.all("SELECT * FROM GOODS", function(e,r){
 			console.log('----1')
@@ -147,10 +159,10 @@ function distinct(){
 // distinct();
 
 
-var s = "SELECT * FROM GOODS WHERE bcode=? LIMIT 1";
-console.log(typeof s);
-dbm.db.all(s,6908512109737,function(e,r){
-	console.log(e);
-	console.log(r);
-});
+importData();
 
+
+
+
+
+// 5/13日前 134716 

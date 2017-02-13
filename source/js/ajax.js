@@ -32,7 +32,7 @@ function ajax(url,method,data,cb){
 				if(url.indexOf("localhost") == -1){
 					cb();
 				}else{
-					alert("AJAX 请求错误");
+					console.log("AJAX 请求错误");
 				}
 				return;
 			}

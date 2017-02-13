@@ -25,6 +25,8 @@ ui.init = function(){
 	var bottom_panel = document.getElementById("bottom_panel");
 	var modify_goods = document.getElementById("modify_goods");
 
+	var mainCnt = document.getElementById("mainContent");
+
 
 	// forcus input panel when inited.
 	barcode.focus();
@@ -57,6 +59,19 @@ ui.init = function(){
 		
 	}
 
+	mainCnt.onmouseup = function(){
+		barcode.focus();
+		barcode.select();
+	}
+
+	// focus window
+	window.onfocus = function(e){
+		setTimeout(function(){
+			barcode.focus();
+			barcode.select();
+		},100);
+	}
+
 	// TODO 
 	function modifyGoodsDlg(){
 		var str = '';
@@ -64,7 +79,7 @@ ui.init = function(){
 		str += '<input id="search_text" style="width:380px;line-height:24px;" type="text" />'
 		str += '<input id="search_btn" type="button" value="查  找" />'
 		str += '</div>';
-		str += '<div id="search_result" style="height:310px;overflow-y:scroll;overflow-x:hidden;">';
+		str += '<div id="search_result" style="height:510px;overflow-y:scroll;overflow-x:hidden;">';
 		str += '查找结果显示在这里';
 		str += '</div>'
 
@@ -77,6 +92,12 @@ ui.init = function(){
 		var search_btn = document.getElementById('search_btn');
 		var search_result = document.getElementById('search_result');
 		var cancleBtn = document.getElementById('cancleBtn');
+
+		search_text.onkeypress = function(){
+			if(event.keyCode!=13){ return; }
+			search_btn.onclick();
+			search_text.select();
+		}
 
 		search_result.onclick = function(e){
 			var t = e.target.parentNode;
@@ -100,7 +121,8 @@ ui.init = function(){
 					console.log(r);
 					showResult(r);
 				}else {
-					result = "没有搜索到商品。"
+					result = "没有搜索到商品：" + key;
+					search_result.innerHTML = result;
 				}
 			})
 		}
@@ -117,7 +139,7 @@ ui.init = function(){
 				// r[i].price
 
 				str += '<div class="search_r_item">';
-				str += '<span style="width:79%;border-right: 1px solid #fff;">' + (r[i].name || '') + '</span>';
+				str += '<span style="width:79%;border-right: 1px solid #000;">' + (r[i].name || '') + '</span>';
 				str += '<span style="width:19%;">' + (r[i].price || '') + '</span>';
 				str += '<div style="display:none;">' + JSON.stringify(r[i]) + '</div>';
 				str += '</div>';
@@ -130,7 +152,7 @@ ui.init = function(){
 			hideDialog();
 		}
 
-		initDlg(500,400);
+		initDlg(700,600);
 		search_text.focus();
 	}
 
@@ -168,8 +190,8 @@ ui.init = function(){
 	}
 
 	function formatPrint(goodsArr){
-		var bSep = "================================" + "\n";
-		var lSep = "--------------------------------" + "\n";
+		var bSep = "=======================" + "\n";
+		var lSep = "-----------------------" + "\n";
 		var str = "";
 		str += "欢迎光临 "+ config.shopName +"\n";
 		str += bSep;
@@ -177,15 +199,27 @@ ui.init = function(){
 		str += lSep;
 		var it;
 		var count = 0;
+
+		function splitToLines(s){
+			var cmd = "";
+			if(s.length > 14){
+				cmd += s.slice(0,14) + '\n';
+				cmd += splitToLines(s.slice(14));
+			}else if(s.length != 0){
+				cmd += s + '\n';
+			}
+			return cmd;
+		}
+
 		for (var i = 0; i < goodsArr.length; i++) {
 			it = goodsArr[i];
-			str += it.name + ' /' + it.price + '/' + it.count + '/'  + it.count * it.price + '\n';
+			str +=  splitToLines(it.name + ' /' + it.price + '/' + it.count + '/'  + it.count * it.price);
 			str += lSep;
 			count += it.count;
 		}
-		str += "消费" + goodsArr.length + "类("+count+"件), 合计:" + ui.goodsSum + "元" + '\n';
+		str += goodsArr.length + "类"+count+"件,合:" + ui.goodsSum + "元" + '\n';
 		str += bSep;
-		str += "销售时间:" + (new Date()).toLocaleString();
+		str += (new Date()).toLocaleString().replace(/[年月日]/g,'/');
 
 		return str;
 	}
@@ -257,8 +291,11 @@ ui.init = function(){
 
 	// click settle button.
 	function onClickSettle(){
+		console.log('------------f5');
 		if( ui.goodsArr.length == 0 ){
 			console.log("There is no goods.")
+			barcode.focus();
+			barcode.select();
 			return;
 		}
 		// ui.orderStatus += 1;
@@ -274,8 +311,8 @@ ui.init = function(){
 	}
 	// show settle dialog
 	function showSettleDlg(){
-		var width = 400;
-		var height = 300;
+		var width = 600;
+		var height = 500;
 		ui.orderStatus = O_CONFIRM;
 
 
@@ -285,15 +322,16 @@ ui.init = function(){
 
 		console.log('showSettleDlg');
 		var str = "";
-		str += '<p style="height:'+(height-50)+'px;overflow-x:hidden;overflow-y:scroll;">';
+		str += '<p style="height:'+(height-60)+'px;overflow-x:hidden;overflow-y:scroll;">';
 		str += preStr;
 		str += '<input id="print_string" value="'+preStr+'" style="display:none" />';
 		str += '</p>';
 
 
 		str += '<p>';
-		str += '<input autocomplete="off" id="dialog_submit" type="button" value="打印结账" />'; 	// TODO 第二次变为 “重新打印”
+		str += '<input autocomplete="off" id="dialog_submit" type="button" value="打印结账 F5" />'; 	// TODO 第二次变为 “重新打印”
 		str += '<input autocomplete="off" id="dialog_cancle" type="button" value="取消" />';
+		str += '<span id="dialog_tips" style="color:green;"></span>';
 		str += '</p>';
 		dlg_cnt.innerHTML = str;
 		initDlg(width,height);
@@ -301,6 +339,8 @@ ui.init = function(){
 
 		var submitBtn = document.getElementById("dialog_submit");
 		var cancleBtn = document.getElementById("dialog_cancle");
+		var dialog_tips = document.getElementById("dialog_tips");
+		dialog_tips = "";
 		cancleBtn.onclick = function(){
 			hideDialog();			
 			// set orderStatus back to last status.
@@ -322,6 +362,8 @@ ui.init = function(){
 
 		var submitBtn = document.getElementById("dialog_submit");
 		var cancleBtn = document.getElementById("dialog_cancle");
+		var dialog_tips = document.getElementById("dialog_tips");
+		dialog_tips.innerHTML = "[ 或直接扫描，下一单 ]"
 		submitBtn.value = "重新打印";
 		cancleBtn.value = "关闭对话";
 		ajax(ui.url,'post',data,function(r){
@@ -344,7 +386,7 @@ ui.init = function(){
 	function initCartUI(){
 		var str = "";
 
-		str += '<tr>';
+		str += '<tr style="font-size: 22px;font-weight: bold;">';
 				str += '<th style="width:5%">序号</th>';
 				str += '<th style="width:25%">商品编号</th>';
 				str += '<th style="width:30%">商品名称</th>';
@@ -365,6 +407,8 @@ ui.init = function(){
 		ui.goodsSum =  Math.round(( ui.goodsSum + item.count * item.price ) * 100) / 100;
 
 		var e = document.createElement("tr");
+		e.style.fontSize = "30px";
+		e.style.fontWeight = "bold";
 
 		var no = ui.goodsArr.length;
 		var str = "<td>" + no + "</td>";
@@ -389,7 +433,7 @@ ui.init = function(){
 		}
 		var it = ui.goodsArr.pop();
 		if(ui.goodsSum == 0){
-			alert("程序有错。总价已经为零！！！");
+			alert("程序有错。总价已经为零！！");
 			return;
 		}
 		ui.goodsSum = Math.round(( ui.goodsSum - it.count * it.price ) * 100 ) / 100;
@@ -505,7 +549,7 @@ ui.init = function(){
 			return r;
 		}
 
-		var str = '<div style="width:300px;display:inline-block">';
+		var str = '<div style="width:350px;display:inline-block">';
 		str += '<p>';
 		str += '条形码：<span  id="dialog_barcode">' + goods.bcode + '</span>';
 		str += '</p>';
@@ -513,7 +557,7 @@ ui.init = function(){
 		str += '商品名称：<input autocomplete="off" id="dialog_name" type="text"'+freezeInput(goods.name)+'/>';
 		str += '</p>';
 		str += '<p>';
-		str += '商品价格：<input autocomplete="off" id="dialog_price" type="number"'+freezeInput(goods.price)+'/> 元';
+		str += '商品价格（元）：<input autocomplete="off" id="dialog_price" type="number"'+freezeInput(goods.price)+'/>';
 		str += '</p>';
 		str += '<p>';
 		str += '参考价格：<span id="dialog_price2">'+(goods.other_price||"")+'</span>元';
@@ -530,12 +574,12 @@ ui.init = function(){
 		str += '</div>';
 
 		dlg_cnt.innerHTML = str;
-		initDlg(600,400);
+		initDlg(800,600);
 
 		var webSearch = document.createElement("div");
 		webSearch.id = "web_search";
-		webSearch.style.width = "300px";
-		webSearch.style.height = "400px";
+		webSearch.style.width = "450px";
+		webSearch.style.height = "600px";
 		webSearch.style.display = "inline-block";
 
 		dlg_cnt.appendChild(webSearch);
@@ -549,6 +593,13 @@ ui.init = function(){
 		var dialog_name = document.getElementById("dialog_name");
 		var dialog_price = document.getElementById("dialog_price");
 		var dialog_tips = document.getElementById("dialog_tips");
+
+		if(dialog_name.disabled){
+			dialog_price.focus();
+		}else{
+			dialog_name.focus();
+		}
+
 		cancleBtn.onclick = function(){
 			hideDialog();
 			// submitBtn.disabled = false;
